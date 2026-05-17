@@ -1,0 +1,24 @@
+server:
+  port: 8010
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:dashboard-service;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health

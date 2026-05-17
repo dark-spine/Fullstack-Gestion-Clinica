@@ -1,0 +1,358 @@
+version: "3.8"
+
+networks:
+  backend-net:
+    driver: bridge
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - backend-net
+
+  db-usuario:
+    image: postgres:15
+    container_name: db-usuario
+    environment:
+      POSTGRES_DB: usuariodb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5432:5432"
+    volumes:
+      - usuario-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  db-medico:
+    image: postgres:15
+    container_name: db-medico
+    environment:
+      POSTGRES_DB: medicodb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5433:5432"
+    volumes:
+      - medico-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  db-agenda:
+    image: postgres:15
+    container_name: db-agenda
+    environment:
+      POSTGRES_DB: agendadb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5434:5432"
+    volumes:
+      - agenda-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  db-citas:
+    image: postgres:15
+    container_name: db-citas
+    environment:
+      POSTGRES_DB: citasdb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5435:5432"
+    volumes:
+      - citas-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  db-paciente:
+    image: postgres:15
+    container_name: db-paciente
+    environment:
+      POSTGRES_DB: pacientedb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5436:5432"
+    volumes:
+      - paciente-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  db-pagos:
+    image: postgres:15
+    container_name: db-pagos
+    environment:
+      POSTGRES_DB: pagosdb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5437:5432"
+    volumes:
+      - pagos-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  db-facturacion:
+    image: postgres:15
+    container_name: db-facturacion
+    environment:
+      POSTGRES_DB: facturaciondb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5438:5432"
+    volumes:
+      - facturacion-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  db-notificaciones:
+    image: postgres:15
+    container_name: db-notificaciones
+    environment:
+      POSTGRES_DB: notificacionesdb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5439:5432"
+    volumes:
+      - notificaciones-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  db-cancelaciones:
+    image: postgres:15
+    container_name: db-cancelaciones
+    environment:
+      POSTGRES_DB: cancelacionesdb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5440:5432"
+    volumes:
+      - cancelaciones-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  db-dashboard:
+    image: postgres:15
+    container_name: db-dashboard
+    environment:
+      POSTGRES_DB: dashboarddb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    ports:
+      - "5441:5432"
+    volumes:
+      - dashboard-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  usuario-service:
+    build:
+      context: .
+      dockerfile: usuario-service/Dockerfile
+    container_name: usuario-service
+    ports:
+      - "8001:8001"
+    depends_on:
+      - rabbitmq
+      - db-usuario
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-usuario:5432/usuariodb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+  medico-service:
+    build:
+      context: .
+      dockerfile: medico-service/Dockerfile
+    container_name: medico-service
+    ports:
+      - "8002:8002"
+    depends_on:
+      - rabbitmq
+      - db-medico
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-medico:5432/medicodb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+  agenda-service:
+    build:
+      context: .
+      dockerfile: agenda-service/Dockerfile
+    container_name: agenda-service
+    ports:
+      - "8003:8003"
+    depends_on:
+      - rabbitmq
+      - db-agenda
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-agenda:5432/agendadb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+  citas-service:
+    build:
+      context: .
+      dockerfile: citas-service/Dockerfile
+    container_name: citas-service
+    ports:
+      - "8004:8004"
+    depends_on:
+      - rabbitmq
+      - db-citas
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-citas:5432/citasdb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+  paciente-service:
+    build:
+      context: .
+      dockerfile: paciente-service/Dockerfile
+    container_name: paciente-service
+    ports:
+      - "8005:8005"
+    depends_on:
+      - rabbitmq
+      - db-paciente
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-paciente:5432/pacientedb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+  pagos-service:
+    build:
+      context: .
+      dockerfile: pagos-service/Dockerfile
+    container_name: pagos-service
+    ports:
+      - "8006:8006"
+    depends_on:
+      - rabbitmq
+      - db-pagos
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-pagos:5432/pagosdb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+  facturacion-service:
+    build:
+      context: .
+      dockerfile: facturacion-service/Dockerfile
+    container_name: facturacion-service
+    ports:
+      - "8007:8007"
+    depends_on:
+      - rabbitmq
+      - db-facturacion
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-facturacion:5432/facturaciondb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+  notificaciones-service:
+    build:
+      context: .
+      dockerfile: notificaciones-service/Dockerfile
+    container_name: notificaciones-service
+    ports:
+      - "8008:8008"
+    depends_on:
+      - rabbitmq
+      - db-notificaciones
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-notificaciones:5432/notificacionesdb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+  cancelaciones-service:
+    build:
+      context: .
+      dockerfile: cancelaciones-service/Dockerfile
+    container_name: cancelaciones-service
+    ports:
+      - "8009:8009"
+    depends_on:
+      - rabbitmq
+      - db-cancelaciones
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-cancelaciones:5432/cancelacionesdb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+  dashboard-service:
+    build:
+      context: .
+      dockerfile: dashboard-service/Dockerfile
+    container_name: dashboard-service
+    ports:
+      - "8010:8010"
+    depends_on:
+      - rabbitmq
+      - db-dashboard
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-dashboard:5432/dashboarddb
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    networks:
+      - backend-net
+
+volumes:
+  usuario-service-data:
+  medico-service-data:
+  agenda-service-data:
+  citas-service-data:
+  paciente-service-data:
+  pagos-service-data:
+  facturacion-service-data:
+  notificaciones-service-data:
+  cancelaciones-service-data:
+  dashboard-service-data:
+

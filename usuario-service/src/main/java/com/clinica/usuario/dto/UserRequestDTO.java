@@ -1,0 +1,15 @@
+package com.clinica.usuario.dto;
+
+import lombok.*;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserRequestDTO {
+    private String username;
+    private String email;
+    private String password;
+    private String role;
+    private String profileType;
+}
