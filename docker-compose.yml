@@ -1,4 +1,4 @@
-version: "3.8"
+version: "2.4"
 
 networks:
   backend-net:
@@ -240,8 +240,10 @@ services:
     ports:
       - "8001:8001"
     depends_on:
-      - rabbitmq
-      - db-usuario
+      rabbitmq:
+        condition: service_healthy
+      db-usuario:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-usuario:5432/usuariodb
       SPRING_DATASOURCE_USERNAME: dev
@@ -266,8 +268,10 @@ services:
     ports:
       - "8002:8002"
     depends_on:
-      - rabbitmq
-      - db-medico
+      rabbitmq:
+        condition: service_healthy
+      db-medico:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-medico:5432/medicodb
       SPRING_DATASOURCE_USERNAME: dev
@@ -292,8 +296,10 @@ services:
     ports:
       - "8003:8003"
     depends_on:
-      - rabbitmq
-      - db-agenda
+      rabbitmq:
+        condition: service_healthy
+      db-agenda:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-agenda:5432/agendadb
       SPRING_DATASOURCE_USERNAME: dev
@@ -318,8 +324,10 @@ services:
     ports:
       - "8004:8004"
     depends_on:
-      - rabbitmq
-      - db-citas
+      rabbitmq:
+        condition: service_healthy
+      db-citas:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-citas:5432/citasdb
       SPRING_DATASOURCE_USERNAME: dev
@@ -344,8 +352,10 @@ services:
     ports:
       - "8005:8005"
     depends_on:
-      - rabbitmq
-      - db-paciente
+      rabbitmq:
+        condition: service_healthy
+      db-paciente:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-paciente:5432/pacientedb
       SPRING_DATASOURCE_USERNAME: dev
@@ -370,8 +380,10 @@ services:
     ports:
       - "8006:8006"
     depends_on:
-      - rabbitmq
-      - db-pagos
+      rabbitmq:
+        condition: service_healthy
+      db-pagos:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-pagos:5432/pagosdb
       SPRING_DATASOURCE_USERNAME: dev
@@ -396,8 +408,10 @@ services:
     ports:
       - "8007:8007"
     depends_on:
-      - rabbitmq
-      - db-facturacion
+      rabbitmq:
+        condition: service_healthy
+      db-facturacion:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-facturacion:5432/facturaciondb
       SPRING_DATASOURCE_USERNAME: dev
@@ -422,8 +436,10 @@ services:
     ports:
       - "8008:8008"
     depends_on:
-      - rabbitmq
-      - db-notificaciones
+      rabbitmq:
+        condition: service_healthy
+      db-notificaciones:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-notificaciones:5432/notificacionesdb
       SPRING_DATASOURCE_USERNAME: dev
@@ -448,8 +464,10 @@ services:
     ports:
       - "8009:8009"
     depends_on:
-      - rabbitmq
-      - db-cancelaciones
+      rabbitmq:
+        condition: service_healthy
+      db-cancelaciones:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-cancelaciones:5432/cancelacionesdb
       SPRING_DATASOURCE_USERNAME: dev
@@ -474,8 +492,10 @@ services:
     ports:
       - "8010:8010"
     depends_on:
-      - rabbitmq
-      - db-dashboard
+      rabbitmq:
+        condition: service_healthy
+      db-dashboard:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-dashboard:5432/dashboarddb
       SPRING_DATASOURCE_USERNAME: dev
