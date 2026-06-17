@@ -5,7 +5,7 @@ Proyecto de microservicios para la gestión de un sistema clínico, desarrollado
 
 ## Integrantes del Equipo
 
-- [Agregar nombres aquí]
+- Daniel Simms | Pablo Toro | Luis Reyes
 
 ## 📋 Descripción del Proyecto
 
