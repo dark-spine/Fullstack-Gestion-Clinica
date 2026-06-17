@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Fullstack Gestión Clínica - Microservicios
 
 Proyecto de microservicios para la gestión de un sistema clínico, desarrollado con **Spring Boot 3.2.12**, **PostgreSQL 15**, **RabbitMQ** y **Docker Compose**.
@@ -274,3 +275,10 @@ Para consultas o problemas:
 
 **Última actualización**: Junio 2026  
 **Semana 15** - Tests (4 capas) + Swagger/OpenAPI completados ✅
+=======
+# Fullstack-Gestion-Clinica
+Integrantes: Daniel Simms | Luis Reyes | Pablo Toro
+
+link video validaciones postman: https://drive.google.com/file/d/1LxQAczrDU350b1MNnZF9OVI_JcdQ-s-Z/view?usp=drive_link
+
+>>>>>>> cd47e9f2bf296ee189296df8bf5369174a38ca69
