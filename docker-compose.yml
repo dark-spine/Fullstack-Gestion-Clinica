@@ -8,6 +8,7 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
+    restart: unless-stopped
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -17,6 +18,7 @@ services:
   db-usuario:
     image: postgres:15
     container_name: db-usuario
+    restart: unless-stopped
     environment:
       POSTGRES_DB: usuariodb
       POSTGRES_USER: dev
@@ -31,6 +33,7 @@ services:
   db-medico:
     image: postgres:15
     container_name: db-medico
+    restart: unless-stopped
     environment:
       POSTGRES_DB: medicodb
       POSTGRES_USER: dev
@@ -45,6 +48,7 @@ services:
   db-agenda:
     image: postgres:15
     container_name: db-agenda
+    restart: unless-stopped
     environment:
       POSTGRES_DB: agendadb
       POSTGRES_USER: dev
@@ -59,6 +63,7 @@ services:
   db-citas:
     image: postgres:15
     container_name: db-citas
+    restart: unless-stopped
     environment:
       POSTGRES_DB: citasdb
       POSTGRES_USER: dev
@@ -73,6 +78,7 @@ services:
   db-paciente:
     image: postgres:15
     container_name: db-paciente
+    restart: unless-stopped
     environment:
       POSTGRES_DB: pacientedb
       POSTGRES_USER: dev
@@ -87,6 +93,7 @@ services:
   db-pagos:
     image: postgres:15
     container_name: db-pagos
+    restart: unless-stopped
     environment:
       POSTGRES_DB: pagosdb
       POSTGRES_USER: dev
@@ -101,6 +108,7 @@ services:
   db-facturacion:
     image: postgres:15
     container_name: db-facturacion
+    restart: unless-stopped
     environment:
       POSTGRES_DB: facturaciondb
       POSTGRES_USER: dev
@@ -115,6 +123,7 @@ services:
   db-notificaciones:
     image: postgres:15
     container_name: db-notificaciones
+    restart: unless-stopped
     environment:
       POSTGRES_DB: notificacionesdb
       POSTGRES_USER: dev
@@ -129,6 +138,7 @@ services:
   db-cancelaciones:
     image: postgres:15
     container_name: db-cancelaciones
+    restart: unless-stopped
     environment:
       POSTGRES_DB: cancelacionesdb
       POSTGRES_USER: dev
@@ -143,6 +153,7 @@ services:
   db-dashboard:
     image: postgres:15
     container_name: db-dashboard
+    restart: unless-stopped
     environment:
       POSTGRES_DB: dashboarddb
       POSTGRES_USER: dev
@@ -159,6 +170,7 @@ services:
       context: .
       dockerfile: usuario-service/Dockerfile
     container_name: usuario-service
+    restart: unless-stopped
     ports:
       - "8001:8001"
     depends_on:
@@ -178,6 +190,7 @@ services:
       context: .
       dockerfile: medico-service/Dockerfile
     container_name: medico-service
+    restart: unless-stopped
     ports:
       - "8002:8002"
     depends_on:
@@ -197,6 +210,7 @@ services:
       context: .
       dockerfile: agenda-service/Dockerfile
     container_name: agenda-service
+    restart: unless-stopped
     ports:
       - "8003:8003"
     depends_on:
@@ -216,6 +230,7 @@ services:
       context: .
       dockerfile: citas-service/Dockerfile
     container_name: citas-service
+    restart: unless-stopped
     ports:
       - "8004:8004"
     depends_on:
@@ -235,6 +250,7 @@ services:
       context: .
       dockerfile: paciente-service/Dockerfile
     container_name: paciente-service
+    restart: unless-stopped
     ports:
       - "8005:8005"
     depends_on:
@@ -254,6 +270,7 @@ services:
       context: .
       dockerfile: pagos-service/Dockerfile
     container_name: pagos-service
+    restart: unless-stopped
     ports:
       - "8006:8006"
     depends_on:
@@ -273,6 +290,7 @@ services:
       context: .
       dockerfile: facturacion-service/Dockerfile
     container_name: facturacion-service
+    restart: unless-stopped
     ports:
       - "8007:8007"
     depends_on:
@@ -292,6 +310,7 @@ services:
       context: .
       dockerfile: notificaciones-service/Dockerfile
     container_name: notificaciones-service
+    restart: unless-stopped
     ports:
       - "8008:8008"
     depends_on:
@@ -311,6 +330,7 @@ services:
       context: .
       dockerfile: cancelaciones-service/Dockerfile
     container_name: cancelaciones-service
+    restart: unless-stopped
     ports:
       - "8009:8009"
     depends_on:
@@ -330,6 +350,7 @@ services:
       context: .
       dockerfile: dashboard-service/Dockerfile
     container_name: dashboard-service
+    restart: unless-stopped
     ports:
       - "8010:8010"
     depends_on:
