@@ -22,3 +22,13 @@ management:
     web:
       exposure:
         include: info, health
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /doc/swagger-ui.html
+    display-operation-id: false
+    operations-sorter: method
