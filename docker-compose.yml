@@ -1,5 +1,3 @@
-version: "2.4"
-
 networks:
   backend-net:
     driver: bridge
@@ -9,13 +7,49 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     restart: unless-stopped
-    ports:
-      - "15672:15672"
-      - "5672:5672"
     networks:
       - backend-net
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  eureka-server:
+    build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
+    container_name: eureka-server
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  gateway-service:
+    build:
+      context: .
+      dockerfile: gateway-service/Dockerfile
+    container_name: gateway-service
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -27,16 +61,33 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: usuariodb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - usuario-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d usuariodb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d usuariodb || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  db-auth:
+    image: postgres:15
+    container_name: db-auth
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - auth-service-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d authdb || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,16 +99,14 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: medicodb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5433:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - medico-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d medicodb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d medicodb || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -69,16 +118,14 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: agendadb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5434:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - agenda-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d agendadb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d agendadb || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -90,16 +137,14 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: citasdb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5435:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - citas-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d citasdb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d citasdb || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -111,16 +156,14 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: pacientedb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5436:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - paciente-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d pacientedb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d pacientedb || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -132,16 +175,14 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: pagosdb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5437:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pagos-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d pagosdb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d pagosdb || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -153,16 +194,14 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: facturaciondb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5438:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - facturacion-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d facturaciondb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d facturaciondb || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -174,16 +213,14 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: notificacionesdb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5439:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - notificaciones-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d notificacionesdb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d notificacionesdb || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -195,16 +232,14 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: cancelacionesdb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5440:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - cancelaciones-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d cancelacionesdb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d cancelacionesdb || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -216,18 +251,43 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: dashboarddb
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
-    ports:
-      - "5441:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - dashboard-service-data:/var/lib/postgresql/data
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev -d dashboarddb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d dashboarddb || exit 1"]
       interval: 10s
       timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    depends_on:
+      db-auth:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-auth:5432/authdb
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q java || exit 1"]
+      interval: 30s
+      timeout: 10s
       retries: 5
       start_period: 10s
 
@@ -237,19 +297,19 @@ services:
       dockerfile: usuario-service/Dockerfile
     container_name: usuario-service
     restart: unless-stopped
-    ports:
-      - "8001:8001"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-usuario:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-usuario:5432/usuariodb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -265,19 +325,19 @@ services:
       dockerfile: medico-service/Dockerfile
     container_name: medico-service
     restart: unless-stopped
-    ports:
-      - "8002:8002"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-medico:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-medico:5432/medicodb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -293,19 +353,19 @@ services:
       dockerfile: agenda-service/Dockerfile
     container_name: agenda-service
     restart: unless-stopped
-    ports:
-      - "8003:8003"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-agenda:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-agenda:5432/agendadb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -321,19 +381,19 @@ services:
       dockerfile: citas-service/Dockerfile
     container_name: citas-service
     restart: unless-stopped
-    ports:
-      - "8004:8004"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-citas:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-citas:5432/citasdb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -349,19 +409,19 @@ services:
       dockerfile: paciente-service/Dockerfile
     container_name: paciente-service
     restart: unless-stopped
-    ports:
-      - "8005:8005"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-paciente:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-paciente:5432/pacientedb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -377,19 +437,19 @@ services:
       dockerfile: pagos-service/Dockerfile
     container_name: pagos-service
     restart: unless-stopped
-    ports:
-      - "8006:8006"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-pagos:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-pagos:5432/pagosdb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -405,19 +465,19 @@ services:
       dockerfile: facturacion-service/Dockerfile
     container_name: facturacion-service
     restart: unless-stopped
-    ports:
-      - "8007:8007"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-facturacion:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-facturacion:5432/facturaciondb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -433,19 +493,19 @@ services:
       dockerfile: notificaciones-service/Dockerfile
     container_name: notificaciones-service
     restart: unless-stopped
-    ports:
-      - "8008:8008"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-notificaciones:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-notificaciones:5432/notificacionesdb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -461,19 +521,19 @@ services:
       dockerfile: cancelaciones-service/Dockerfile
     container_name: cancelaciones-service
     restart: unless-stopped
-    ports:
-      - "8009:8009"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-cancelaciones:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-cancelaciones:5432/cancelacionesdb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -489,19 +549,19 @@ services:
       dockerfile: dashboard-service/Dockerfile
     container_name: dashboard-service
     restart: unless-stopped
-    ports:
-      - "8010:8010"
     depends_on:
       rabbitmq:
         condition: service_healthy
       db-dashboard:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-dashboard:5432/dashboarddb
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: dev123
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
     networks:
       - backend-net
     healthcheck:
@@ -522,4 +582,5 @@ volumes:
   notificaciones-service-data:
   cancelaciones-service-data:
   dashboard-service-data:
+  auth-service-data:
 

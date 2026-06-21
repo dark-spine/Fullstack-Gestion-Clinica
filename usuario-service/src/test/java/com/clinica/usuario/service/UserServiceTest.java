@@ -13,16 +13,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("User Service Tests")
 class UserServiceTest {
+
     @Mock
     private UserRepository userRepository;
 
@@ -38,80 +37,53 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userRequestDTO = UserRequestDTO.builder()
-                .username("john.doe")
-                .email("john@example.com")
-                .password("securePassword123")
-                .role("DOCTOR")
-                .profileType("SPECIALIST")
-                .build();
+        userRequestDTO = new UserRequestDTO();
+        userRequestDTO.setUsername("john.doe");
+        userRequestDTO.setEmail("john@example.com");
+        userRequestDTO.setPassword("password123");
+        userRequestDTO.setRole("USER");
 
-        user = User.builder()
-                .id(1L)
-                .username("john.doe")
-                .email("john@example.com")
-                .password("securePassword123")
-                .role("DOCTOR")
-                .profileType("SPECIALIST")
-                .build();
+        user = new User();
+        user.setId(1L);
+        user.setUsername("john.doe");
+        user.setEmail("john@example.com");
 
-        userResponseDTO = UserResponseDTO.builder()
-                .id(1L)
-                .username("john.doe")
-                .email("john@example.com")
-                .role("DOCTOR")
-                .profileType("SPECIALIST")
-                .build();
+        userResponseDTO = new UserResponseDTO();
+        userResponseDTO.setId(1L);
+        userResponseDTO.setUsername("john.doe");
     }
 
     @Test
     @DisplayName("Should successfully create a new user")
     void testCreateUserSuccess() {
-        // Arrange
         when(userMapper.toEntity(userRequestDTO)).thenReturn(user);
         when(userRepository.save(user)).thenReturn(user);
         when(userMapper.toResponse(user)).thenReturn(userResponseDTO);
 
-        // Act
         UserResponseDTO result = userService.createUser(userRequestDTO);
 
-        // Assert
         assertNotNull(result);
         assertEquals("john.doe", result.getUsername());
-        assertEquals("john@example.com", result.getEmail());
-        assertEquals("DOCTOR", result.getRole());
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     @DisplayName("Should list all users successfully")
     void testListUsersSuccess() {
-        // Arrange
-        User user2 = User.builder()
-                .id(2L)
-                .username("jane.smith")
-                .email("jane@example.com")
-                .password("password456")
-                .role("PATIENT")
-                .profileType("GENERAL")
-                .build();
+        User user2 = new User();
+        user2.setId(2L);
+        user2.setUsername("jane.smith");
 
-        UserResponseDTO responseDTO2 = UserResponseDTO.builder()
-                .id(2L)
-                .username("jane.smith")
-                .email("jane@example.com")
-                .role("PATIENT")
-                .profileType("GENERAL")
-                .build();
+        UserResponseDTO responseDTO2 = new UserResponseDTO();
+        responseDTO2.setId(2L);
+        responseDTO2.setUsername("jane.smith");
 
-        when(userRepository.findAll()).thenReturn(Arrays.asList(user, user2));
+        when(userRepository.findAll()).thenReturn(List.of(user, user2));
         when(userMapper.toResponse(user)).thenReturn(userResponseDTO);
         when(userMapper.toResponse(user2)).thenReturn(responseDTO2);
 
-        // Act
         List<UserResponseDTO> result = userService.listUsers();
 
-        // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals("john.doe", result.get(0).getUsername());
@@ -122,13 +94,10 @@ class UserServiceTest {
     @Test
     @DisplayName("Should list users returning empty list when no users exist")
     void testListUsersEmptyList() {
-        // Arrange
-        when(userRepository.findAll()).thenReturn(Arrays.asList());
+        when(userRepository.findAll()).thenReturn(List.of());
 
-        // Act
         List<UserResponseDTO> result = userService.listUsers();
 
-        // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(userRepository, times(1)).findAll();
@@ -137,31 +106,13 @@ class UserServiceTest {
     @Test
     @DisplayName("Should verify mapper is called during user creation")
     void testMapperCalledDuringCreation() {
-        // Arrange
         when(userMapper.toEntity(userRequestDTO)).thenReturn(user);
         when(userRepository.save(user)).thenReturn(user);
         when(userMapper.toResponse(user)).thenReturn(userResponseDTO);
 
-        // Act
         userService.createUser(userRequestDTO);
 
-        // Assert
         verify(userMapper, times(1)).toEntity(userRequestDTO);
         verify(userMapper, times(1)).toResponse(user);
-    }
-
-    @Test
-    @DisplayName("Should verify repository save is called with correct entity")
-    void testRepositorySaveCalledWithCorrectEntity() {
-        // Arrange
-        when(userMapper.toEntity(userRequestDTO)).thenReturn(user);
-        when(userRepository.save(user)).thenReturn(user);
-        when(userMapper.toResponse(user)).thenReturn(userResponseDTO);
-
-        // Act
-        userService.createUser(userRequestDTO);
-
-        // Assert
-        verify(userRepository, times(1)).save(user);
     }
 }

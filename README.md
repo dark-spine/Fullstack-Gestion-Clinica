@@ -49,7 +49,7 @@ Sistema modular de gestión clínica con 10 microservicios independientes que ma
 ### Requisitos
 
 - Docker & Docker Compose
-- Java 17+
+- Java 21+
 - Maven 3.9.7 (opcional, Docker maneja la compilación)
 
 ### Ejecución
@@ -150,7 +150,7 @@ docker exec medico-service mvn test
 <dependency>
     <groupId>org.springdoc</groupId>
     <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-    <version>2.1.0</version>
+    <version>2.6.0</version>
 </dependency>
 ```
 
@@ -208,7 +208,7 @@ psql -h localhost -p 5437 -U postgres -d pagosdb
 ## 📦 Tecnologías
 
 - **Framework**: Spring Boot 3.2.12
-- **Lenguaje**: Java 17
+- **Lenguaje**: Java 21
 - **Build**: Maven 3.9.7
 - **BD Principal**: PostgreSQL 15
 - **Message Broker**: RabbitMQ 3
@@ -275,10 +275,3 @@ Para consultas o problemas:
 
 **Última actualización**: Junio 2026  
 **Semana 15** - Tests (4 capas) + Swagger/OpenAPI completados ✅
-=======
-# Fullstack-Gestion-Clinica
-Integrantes: Daniel Simms | Luis Reyes | Pablo Toro
-
-link video validaciones postman: https://drive.google.com/file/d/1LxQAczrDU350b1MNnZF9OVI_JcdQ-s-Z/view?usp=drive_link
-
->>>>>>> cd47e9f2bf296ee189296df8bf5369174a38ca69

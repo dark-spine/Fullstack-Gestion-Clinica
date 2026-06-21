@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.MockBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -128,29 +128,30 @@ class AppointmentControllerTest {
         verify(appointmentService, times(1)).listAppointments();
     }
 
+        @Test
+        @DisplayName("POST /api/appointments/{id}/cancel should return 200 OK")
+        void testCancelAppointmentReturns200() throws Exception {
+                // Arrange
+                when(appointmentService.cancelAppointment(1L)).thenReturn(appointmentResponseDTO);
+
+                // Act & Assert
+                mockMvc.perform(post("/api/appointments/1/cancel")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id", is(1)));
+
+                verify(appointmentService, times(1)).cancelAppointment(1L);
+        }
+
     @Test
-    @DisplayName("DELETE /api/appointments/{id} should return 204 No Content")
-    void testCancelAppointmentReturns204() throws Exception {
-        // Arrange
-        when(appointmentService.cancelAppointment(1L)).thenReturn(appointmentResponseDTO);
-
-        // Act & Assert
-        mockMvc.perform(delete("/api/appointments/1")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
-
-        verify(appointmentService, times(1)).cancelAppointment(1L);
-    }
-
-    @Test
-    @DisplayName("DELETE /api/appointments/{id} should return 404 when appointment not found")
-    void testCancelAppointmentReturns404() throws Exception {
+    @DisplayName("POST /api/appointments/{id}/cancel should return 500 when service throws")
+    void testCancelAppointmentReturns500() throws Exception {
         // Arrange
         when(appointmentService.cancelAppointment(999L))
                 .thenThrow(new IllegalArgumentException("Appointment not found"));
 
         // Act & Assert
-        mockMvc.perform(delete("/api/appointments/999")
+        mockMvc.perform(post("/api/appointments/999/cancel")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
     }

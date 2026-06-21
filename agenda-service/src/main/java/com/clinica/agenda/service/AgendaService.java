@@ -32,7 +32,7 @@ public class AgendaService {
     @Transactional
     public SlotResponseDTO reserveSlot(Long doctorId, java.time.LocalDateTime startTime) {
         ScheduleSlot slot = repository.findByDoctorIdAndStartTime(doctorId, startTime)
-                .orElseThrow(() -> new IllegalStateException("Slot no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Slot no encontrado"));
         if (!"AVAILABLE".equals(slot.getStatus())) {
             throw new IllegalStateException("Slot ya reservado o bloqueado");
         }

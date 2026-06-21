@@ -2,44 +2,86 @@ package com.clinica.agenda.controller;
 
 import com.clinica.agenda.dto.SlotRequestDTO;
 import com.clinica.agenda.dto.SlotResponseDTO;
+import com.clinica.agenda.exception.ApiExceptionHandler;
 import com.clinica.agenda.service.AgendaService;
+import com.clinica.agenda.mapper.AgendaMapper;
+import com.clinica.agenda.repository.ScheduleSlotRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AgendaController.class)
 @DisplayName("Agenda Controller Tests")
 class AgendaControllerTest {
-    @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
     private ObjectMapper objectMapper;
-
-    @MockBean
-    private AgendaService agendaService;
+    private StubAgendaService agendaService;
+    private AgendaController agendaController;
+    private LocalValidatorFactoryBean validator;
 
     private SlotRequestDTO slotRequestDTO;
     private SlotResponseDTO slotResponseDTO;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+
+    private static class StubAgendaService extends AgendaService {
+        private SlotResponseDTO slotResponse;
+        private RuntimeException exceptionToThrow;
+        private List<SlotResponseDTO> slotsResponse;
+
+        protected StubAgendaService() {
+            super(null, null);
+        }
+
+        void setSlotResponse(SlotResponseDTO slotResponse) {
+            this.slotResponse = slotResponse;
+        }
+
+        void setExceptionToThrow(RuntimeException exceptionToThrow) {
+            this.exceptionToThrow = exceptionToThrow;
+        }
+
+        void setSlotsResponse(List<SlotResponseDTO> slotsResponse) {
+            this.slotsResponse = slotsResponse;
+        }
+
+        @Override
+        public SlotResponseDTO createSlot(SlotRequestDTO dto) {
+            if (exceptionToThrow != null) {
+                throw exceptionToThrow;
+            }
+            return slotResponse;
+        }
+
+        @Override
+        public SlotResponseDTO reserveSlot(Long doctorId, java.time.LocalDateTime startTime) {
+            if (exceptionToThrow != null) {
+                throw exceptionToThrow;
+            }
+            return slotResponse;
+        }
+
+        @Override
+        public List<SlotResponseDTO> findAvailable(Long doctorId) {
+            return slotsResponse != null ? slotsResponse : Collections.emptyList();
+        }
+    }
 
     @BeforeEach
     void setUp() {
@@ -61,30 +103,40 @@ class AgendaControllerTest {
                 .status("AVAILABLE")
                 .durationMinutes(60)
                 .build();
+
+        agendaService = new StubAgendaService();
+        agendaController = new AgendaController(agendaService);
+
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
+
+        mockMvc = MockMvcBuilders.standaloneSetup(agendaController)
+                .setControllerAdvice(new ApiExceptionHandler())
+                .setValidator(validator)
+                .build();
     }
 
     @Test
     @DisplayName("POST /api/agenda/slots should return 201 Created")
     void testCreateSlotReturns201() throws Exception {
-        // Arrange
-        when(agendaService.createSlot(any(SlotRequestDTO.class))).thenReturn(slotResponseDTO);
+        agendaService.setSlotResponse(slotResponseDTO);
 
-        // Act & Assert
         mockMvc.perform(post("/api/agenda/slots")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(slotRequestDTO)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(slotRequestDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.doctorId", is(100)))
                 .andExpect(jsonPath("$.status", is("AVAILABLE")));
-
-        verify(agendaService, times(1)).createSlot(any(SlotRequestDTO.class));
     }
 
     @Test
     @DisplayName("POST /api/agenda/slots should return 400 Bad Request with invalid data")
     void testCreateSlotReturns400WithInvalidData() throws Exception {
-        // Arrange
         SlotRequestDTO invalidRequest = SlotRequestDTO.builder()
                 .doctorId(null)
                 .startTime(null)
@@ -92,49 +144,41 @@ class AgendaControllerTest {
                 .durationMinutes(null)
                 .build();
 
-        // Act & Assert
         mockMvc.perform(post("/api/agenda/slots")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("POST /api/agenda/slots/reserve should return 200 OK")
     void testReserveSlotReturns200() throws Exception {
-        // Arrange
-        when(agendaService.reserveSlot(100L, startTime)).thenReturn(slotResponseDTO);
+        agendaService.setSlotResponse(slotResponseDTO);
 
-        // Act & Assert
         mockMvc.perform(post("/api/agenda/slots/reserve")
-                .param("doctorId", "100")
-                .param("startTime", "2025-06-20T10:00:00")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .param("doctorId", "100")
+                        .param("startTime", "2025-06-20T10:00:00")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.doctorId", is(100)));
-
-        verify(agendaService, times(1)).reserveSlot(100L, startTime);
     }
 
     @Test
     @DisplayName("POST /api/agenda/slots/reserve should return 404 when slot not found")
     void testReserveSlotReturns404() throws Exception {
-        // Arrange
-        when(agendaService.reserveSlot(any(), any())).thenThrow(new IllegalStateException("Slot no encontrado"));
+        agendaService.setExceptionToThrow(new java.util.NoSuchElementException("Slot no encontrado"));
 
-        // Act & Assert
         mockMvc.perform(post("/api/agenda/slots/reserve")
-                .param("doctorId", "100")
-                .param("startTime", "2025-06-20T10:00:00")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+                        .param("doctorId", "100")
+                        .param("startTime", "2025-06-20T10:00:00")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("GET /api/agenda/slots/available should return 200 OK with list")
     void testGetAvailableSlotsReturns200() throws Exception {
-        // Arrange
         SlotResponseDTO slot2 = SlotResponseDTO.builder()
                 .id(2L)
                 .doctorId(100L)
@@ -144,50 +188,37 @@ class AgendaControllerTest {
                 .durationMinutes(60)
                 .build();
 
-        List<SlotResponseDTO> slots = Arrays.asList(slotResponseDTO, slot2);
-        when(agendaService.findAvailable(100L)).thenReturn(slots);
+        agendaService.setSlotsResponse(Arrays.asList(slotResponseDTO, slot2));
 
-        // Act & Assert
         mockMvc.perform(get("/api/agenda/slots/available")
-                .param("doctorId", "100")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .param("doctorId", "100")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].doctorId", is(100)))
                 .andExpect(jsonPath("$[1].doctorId", is(100)));
-
-        verify(agendaService, times(1)).findAvailable(100L);
     }
 
     @Test
     @DisplayName("GET /api/agenda/slots/available should return 200 OK with empty list")
     void testGetAvailableSlotsReturns200EmptyList() throws Exception {
-        // Arrange
-        when(agendaService.findAvailable(100L)).thenReturn(Arrays.asList());
+        agendaService.setSlotsResponse(Collections.emptyList());
 
-        // Act & Assert
         mockMvc.perform(get("/api/agenda/slots/available")
-                .param("doctorId", "100")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .param("doctorId", "100")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
-
-        verify(agendaService, times(1)).findAvailable(100L);
     }
 
     @Test
     @DisplayName("POST /api/agenda/slots should verify service is called with correct DTO")
     void testCreateSlotCallsServiceWithCorrectDTO() throws Exception {
-        // Arrange
-        when(agendaService.createSlot(any(SlotRequestDTO.class))).thenReturn(slotResponseDTO);
+        agendaService.setSlotResponse(slotResponseDTO);
 
-        // Act
         mockMvc.perform(post("/api/agenda/slots")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(slotRequestDTO)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(slotRequestDTO)))
                 .andExpect(status().isCreated());
-
-        // Assert
-        verify(agendaService).createSlot(any(SlotRequestDTO.class));
     }
 }

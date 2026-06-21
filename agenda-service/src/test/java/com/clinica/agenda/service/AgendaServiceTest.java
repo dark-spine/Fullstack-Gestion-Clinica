@@ -134,7 +134,7 @@ class AgendaServiceTest {
         when(repository.findByDoctorIdAndStartTime(100L, startTime)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(IllegalStateException.class, () -> agendaService.reserveSlot(100L, startTime));
+        assertThrows(java.util.NoSuchElementException.class, () -> agendaService.reserveSlot(100L, startTime));
         verify(repository, never()).save(any(ScheduleSlot.class));
     }
 

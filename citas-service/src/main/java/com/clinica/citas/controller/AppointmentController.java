@@ -43,7 +43,7 @@ public class AppointmentController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AppointmentResponseDTO create(@RequestBody AppointmentRequestDTO dto) {
+    public AppointmentResponseDTO create(@Valid @RequestBody AppointmentRequestDTO dto) {
         return service.createAppointment(dto);
     }
 
