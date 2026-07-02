@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lowerCaseServiceId: true
+      routes:
+        # Citas Service
+        - id: citas-service
+          uri: lb://citas-service
+          predicates:
+            - Path=/api/citas/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+        
+        # Cancelaciones Service
+        - id: cancelaciones-service
+          uri: lb://cancelaciones-service
+          predicates:
+            - Path=/api/cancelaciones/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+        
+        # Paciente Service
+        - id: paciente-service
+          uri: lb://paciente-service
+          predicates:
+            - Path=/api/pacientes/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+        
+        # Medico Service
+        - id: medico-service
+          uri: lb://medico-service
+          predicates:
+            - Path=/api/medicos/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+        
+        # Usuario Service
+        - id: usuario-service
+          uri: lb://usuario-service
+          predicates:
+            - Path=/api/usuarios/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

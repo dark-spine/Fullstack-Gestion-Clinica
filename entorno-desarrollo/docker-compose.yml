@@ -1,0 +1,240 @@
+version: '3.8'
+
+services:
+  # MySQL Databases
+  db-citas:
+    image: mysql:8.0
+    container_name: db-citas
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: citasdb
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev123
+    ports:
+      - "3306:3306"
+    networks:
+      - clinica-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  db-cancelaciones:
+    image: mysql:8.0
+    container_name: db-cancelaciones
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: cancelacionesdb
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev123
+    ports:
+      - "3307:3306"
+    networks:
+      - clinica-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  db-pacientes:
+    image: mysql:8.0
+    container_name: db-pacientes
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: pacientesdb
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev123
+    ports:
+      - "3308:3306"
+    networks:
+      - clinica-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  db-medicos:
+    image: mysql:8.0
+    container_name: db-medicos
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: medicosdb
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev123
+    ports:
+      - "3309:3306"
+    networks:
+      - clinica-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  db-usuarios:
+    image: mysql:8.0
+    container_name: db-usuarios
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: usuariosdb
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev123
+    ports:
+      - "3310:3306"
+    networks:
+      - clinica-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Eureka Server
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - clinica-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/eureka/status"]
+      timeout: 20s
+      retries: 10
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - clinica-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      timeout: 20s
+      retries: 10
+
+  # Citas Service
+  citas-service:
+    build:
+      context: ./citas-service
+      dockerfile: Dockerfile
+    container_name: citas-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-citas:3306/citasdb?serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=dev
+      - SPRING_DATASOURCE_PASSWORD=dev123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      db-citas:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - clinica-network
+
+  # Cancelaciones Service
+  cancelaciones-service:
+    build:
+      context: ./cancelaciones-service
+      dockerfile: Dockerfile
+    container_name: cancelaciones-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-cancelaciones:3306/cancelacionesdb?serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=dev
+      - SPRING_DATASOURCE_PASSWORD=dev123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      db-cancelaciones:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - clinica-network
+
+  # Paciente Service
+  paciente-service:
+    build:
+      context: ./paciente-service
+      dockerfile: Dockerfile
+    container_name: paciente-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-pacientes:3306/pacientesdb?serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=dev
+      - SPRING_DATASOURCE_PASSWORD=dev123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      db-pacientes:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - clinica-network
+
+  # Medico Service
+  medico-service:
+    build:
+      context: ./medico-service
+      dockerfile: Dockerfile
+    container_name: medico-service
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-medicos:3306/medicosdb?serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=dev
+      - SPRING_DATASOURCE_PASSWORD=dev123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      db-medicos:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - clinica-network
+
+  # Usuario Service
+  usuario-service:
+    build:
+      context: ./usuario-service
+      dockerfile: Dockerfile
+    container_name: usuario-service
+    ports:
+      - "8088:8088"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-usuarios:3306/usuariosdb?serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=dev
+      - SPRING_DATASOURCE_PASSWORD=dev123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      db-usuarios:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - clinica-network
+
+networks:
+  clinica-network:
+    driver: bridge
