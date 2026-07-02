@@ -1,0 +1,65 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      routes:
+        - id: usuario-route
+          uri: lb://USUARIO-SERVICE
+          predicates:
+            - Path=/api/users/**
+        - id: medico-route
+          uri: lb://MEDICO-SERVICE
+          predicates:
+            - Path=/api/doctors/**
+        - id: agenda-route
+          uri: lb://AGENDA-SERVICE
+          predicates:
+            - Path=/api/agenda/**
+        - id: citas-route
+          uri: lb://CITAS-SERVICE
+          predicates:
+            - Path=/api/appointments/**
+        - id: paciente-route
+          uri: lb://PACIENTE-SERVICE
+          predicates:
+            - Path=/api/patients/**
+        - id: pagos-route
+          uri: lb://PAGOS-SERVICE
+          predicates:
+            - Path=/api/payments/**
+        - id: facturacion-route
+          uri: lb://FACTURACION-SERVICE
+          predicates:
+            - Path=/api/invoices/**
+        - id: cancelaciones-route
+          uri: lb://CANCELACIONES-SERVICE
+          predicates:
+            - Path=/api/cancellations/**
+        - id: dashboard-route
+          uri: lb://DASHBOARD-SERVICE
+          predicates:
+            - Path=/api/dashboard/**
+        - id: notificaciones-route
+          uri: lb://NOTIFICACIONES-SERVICE
+          predicates:
+            - Path=/api/notifications/**
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
