@@ -1,414 +1,277 @@
-# Sistema de Gestión de Clínicas - Arquitectura de Microservicios
+<<<<<<< HEAD
+# Fullstack Gestión Clínica - Microservicios
 
-## 📋 Descripción del Dominio
+Proyecto de microservicios para la gestión de un sistema clínico, desarrollado con **Spring Boot 3.2.12**, **PostgreSQL 15**, **RabbitMQ** y **Docker Compose**.
 
-Sistema integral para la gestión de clínicas médicas, basado en una arquitectura de microservicios. El sistema permite gestionar:
-- **Pacientes**: Registro, actualización y gestión de historiales de pacientes
-- **Médicos**: Administración de profesionales médicos, especialidades y calendarios
-- **Citas Médicas**: Programación, cancelación y seguimiento de citas
-- **Agenda**: Gestión de slots disponibles de médicos
-- **Usuarios**: Autenticación y administración de usuarios del sistema
-- **Pagos**: Procesamiento y seguimiento de pagos
-- **Facturación**: Emisión y gestión de facturas
-- **Notificaciones**: Alertas y recordatorios automáticos
-- **Dashboard**: Visualización de métricas e indicadores clave
-- **Cancelaciones**: Registro y control de cancelaciones de citas
+## Integrantes del Equipo
 
-## 👥 Equipo de Desarrollo
+- Daniel Simms | Pablo Toro | Luis Reyes
 
-- Desarrolladores del proyecto EFT 2026
-- Arquitectos de Microservicios
-- Ingenieros de Calidad
+## 📋 Descripción del Proyecto
+
+Sistema modular de gestión clínica con 10 microservicios independientes que manejan:
+- Gestión de usuarios y autenticación
+- Administración de médicos y especialidades
+- Gestión de agendas y disponibilidad de citas
+- Reserva y gestión de citas médicas
+- Procesamiento de pagos
+- Facturación electrónica
+- Cancelación de citas
+- Notificaciones a usuarios
+- Datos de pacientes
+- Dashboards analíticos
 
 ## 🏗️ Arquitectura
 
-### Patrón de Diseño: CSR (Controller-Service-Repository)
+### Microservicios (10 servicios)
 
-Cada microservicio implementa la separación clara de responsabilidades:
-- **Controllers**: Manejo de solicitudes HTTP REST
-- **Services**: Lógica de negocio y orquestación
-- **Repositories**: Acceso a datos con JPA/Hibernate
-- **Models**: Entidades JPA
+| Servicio | Puerto | Descripción | Status |
+|----------|--------|-------------|--------|
+| **usuario-service** | 8001 | Gestión de usuarios y roles | ✅ |
+| **medico-service** | 8002 | Registro y gestión de médicos | ✅ |
+| **agenda-service** | 8003 | Slots de disponibilidad médica | ✅ |
+| **citas-service** | 8004 | Reserva y gestión de citas | ✅ |
+| **paciente-service** | 8005 | Datos de pacientes | ✅ |
+| **pagos-service** | 8006 | Procesamiento de pagos | ✅ |
+| **facturacion-service** | 8007 | Facturación electrónica | ✅ |
+| **notificaciones-service** | 8008 | Envío de notificaciones | ✅ |
+| **cancelaciones-service** | 8009 | Gestión de cancelaciones | ✅ |
+| **dashboard-service** | 8010 | Dashboards y reportes | ✅ |
 
-### Componentes Principales
+### Infraestructura
 
-#### 1. **API Gateway** (Puerto: 8080)
-- Punto de entrada único para todas las solicitudes
-- Enrutamiento inteligente de tráfico
-- Spring Cloud Gateway
-- Integración con Eureka para descubrimiento dinámico
+- **Bases de Datos**: PostgreSQL 15 (10 instancias, puertos 5432-5441)
+- **Message Broker**: RabbitMQ 3 (puerto 5672, management 15672)
+- **Orquestación**: Docker Compose con 22 contenedores
 
-#### 2. **Eureka Server** (Puerto: 8761)
-- Servidor de descubrimiento y registro de servicios
-- Permite comunicación entre microservicios sin URLs hardcodeadas
-- Auto-escalado y tolerancia a fallos
+## 🚀 Iniciando el Proyecto
 
-## 📦 Microservicios
+### Requisitos
 
-### Servicios Implementados
+- Docker & Docker Compose
+- Java 21+
+- Maven 3.9.7 (opcional, Docker maneja la compilación)
 
-| Servicio | Puerto | Base de Datos | Swagger |
-|----------|--------|---------------|---------|
-| **API Gateway** | 8080 | - | - |
-| **Eureka Server** | 8761 | - | - |
-| **Citas Service** | 8084 | citasdb | ✅ |
-| **Cancelaciones Service** | 8085 | cancelacionesdb | ✅ |
-| **Paciente Service** | 8086 | pacientesdb | ✅ |
-| **Médico Service** | 8087 | medicosdb | ✅ |
-| **Usuario Service** | 8088 | usuariosdb | ✅ |
-| **Agenda Service** | 8089 | agendadb | - |
-| **Dashboard Service** | 8090 | dashboarddb | - |
-| **Facturación Service** | 8091 | facturaciondb | - |
-| **Notificaciones Service** | 8092 | notificacionesdb | - |
-| **Pagos Service** | 8093 | pagosdb | - |
-
-## 🔌 Rutas Principales del API Gateway
-
-```
-GET  /api/citas              → Listar citas
-POST /api/citas              → Crear cita
-GET  /api/citas/{id}         → Obtener cita
-PUT  /api/citas/{id}         → Actualizar cita
-DELETE /api/citas/{id}       → Eliminar cita
-
-GET  /api/cancelaciones      → Listar cancelaciones
-POST /api/cancelaciones      → Crear cancelación
-
-GET  /api/pacientes          → Listar pacientes
-POST /api/pacientes          → Crear paciente
-GET  /api/pacientes/{id}     → Obtener paciente
-
-GET  /api/medicos            → Listar médicos
-POST /api/medicos            → Crear médico
-GET  /api/medicos/{id}       → Obtener médico
-
-GET  /api/usuarios           → Listar usuarios
-POST /api/usuarios           → Crear usuario
-GET  /api/usuarios/{id}      → Obtener usuario
-```
-
-## 📚 Documentación Swagger/OpenAPI
-
-La documentación interactiva Swagger está disponible en cada servicio:
-
-### URLs de Swagger
-
-| Servicio | URL |
-|----------|-----|
-| **Citas Service** | http://localhost:8084/swagger-ui.html |
-| **Cancelaciones Service** | http://localhost:8085/swagger-ui.html |
-| **Paciente Service** | http://localhost:8086/swagger-ui.html |
-| **Médico Service** | http://localhost:8087/swagger-ui.html |
-| **Usuario Service** | http://localhost:8088/swagger-ui.html |
-
-### Acceder a Swagger vía API Gateway
-
-```
-http://localhost:8080/citas-service/v3/api-docs
-http://localhost:8080/cancelaciones-service/v3/api-docs
-http://localhost:8080/paciente-service/v3/api-docs
-http://localhost:8080/medico-service/v3/api-docs
-http://localhost:8080/usuario-service/v3/api-docs
-```
-
-## ✅ Pruebas Unitarias
-
-### Cobertura Implementada
-
-Cada servicio incluye pruebas unitarias cubriendo las 4 capas:
-
-#### 1. **Capa de Modelo** (`Model Tests`)
-- Validación de entidades JPA
-- Pruebas de getters/setters
-- Tests de relaciones entre modelos
-- ✅ Cobertura: >80%
-
-#### 2. **Capa de Repositorio** (`Repository Tests`)
-- Tests de operaciones CRUD
-- Pruebas de consultas personalizadas
-- Validación de persistencia en BD
-- ✅ Cobertura: >80%
-
-#### 3. **Capa de Servicio** (`Service Tests`)
-- Tests con Mockito de dependencias
-- Validación de lógica de negocio
-- Tests de transformación DTOs
-- Manejo de excepciones
-- ✅ Cobertura: >80%
-
-#### 4. **Capa de Controlador** (`Controller Tests`)
-- Tests con MockMvc
-- Validación de endpoints REST
-- Tests de códigos HTTP
-- Validación de request/response
-- ✅ Cobertura: >80%
-
-### Ejecutar Pruebas
+### Ejecución
 
 ```bash
-# Todas las pruebas
-mvn test
+# Clonar el repositorio
+git clone [repository-url]
+cd microservicios-clinica
 
-# Pruebas de un servicio específico
-cd citas-service
-mvn test
+# Iniciar todos los servicios
+docker compose up -d
 
-# Con reporte de cobertura
-mvn clean test jacoco:report
+# Verificar estado
+docker compose ps
+
+# Ver logs de un servicio específico
+docker compose logs -f pagos-service
 ```
 
-### Servicios con Pruebas Unitarias
-
-- ✅ **Citas Service** - 25+ tests
-- ✅ **Cancelaciones Service** - 8+ tests
-- ✅ **Paciente Service** - 8+ tests
-- ✅ **Médico Service** - 9+ tests
-- ✅ **Usuario Service** - 8+ tests
-
-## 🚀 Instrucciones de Ejecución
-
-### Requisitos Previos
-
-- **Java 21** o superior
-- **Maven 3.9+**
-- **Docker** y **Docker Compose**
-- **Git**
-
-### Opción 1: Ejecución con Docker Compose (Recomendado)
+### Detener los servicios
 
 ```bash
-# Clonar repositorio
-git clone <repository-url>
-cd mi-proyecto-fullstack/entorno-desarrollo
-
-# Construir y ejecutar todos los servicios
-docker-compose up --build
-
-# Los servicios estarán disponibles en:
-# - API Gateway: http://localhost:8080
-# - Eureka: http://localhost:8761
-# - Citas Service: http://localhost:8084
-# - Cancelaciones Service: http://localhost:8085
-# - Paciente Service: http://localhost:8086
-# - Médico Service: http://localhost:8087
-# - Usuario Service: http://localhost:8088
+docker compose down
+docker compose down -v  # Incluye volúmenes de datos
 ```
 
-### Opción 2: Ejecución Local (Desarrollo)
+## 📚 Documentación API (Swagger/OpenAPI 3.0)
+
+Todos los microservicios incluyen documentación interactiva con Swagger UI:
+
+### Links Swagger por Servicio
+
+| Servicio | URL Swagger | OpenAPI JSON |
+|----------|------------|--------------|
+| usuario-service | http://localhost:8001/swagger-ui.html | http://localhost:8001/v3/api-docs |
+| medico-service | http://localhost:8002/swagger-ui.html | http://localhost:8002/v3/api-docs |
+| agenda-service | http://localhost:8003/swagger-ui.html | http://localhost:8003/v3/api-docs |
+| citas-service | http://localhost:8004/swagger-ui.html | http://localhost:8004/v3/api-docs |
+| paciente-service | http://localhost:8005/swagger-ui.html | http://localhost:8005/v3/api-docs |
+| **pagos-service** | http://localhost:8006/doc/swagger-ui.html or http://localhost:8080/doc/swagger-ui.html | http://localhost:8006/v3/api-docs or http://localhost:8080/v3/api-docs |
+| facturacion-service | http://localhost:8007/swagger-ui.html | http://localhost:8007/v3/api-docs |
+| notificaciones-service | http://localhost:8008/swagger-ui.html | http://localhost:8008/v3/api-docs |
+| cancelaciones-service | http://localhost:8009/swagger-ui.html | http://localhost:8009/v3/api-docs |
+| dashboard-service | http://localhost:8010/swagger-ui.html | http://localhost:8010/v3/api-docs |
+
+**Nota:** El servicio `pagos-service` está completamente documentado y es el modelo de referencia para los demás servicios.
+
+## 🧪 Pruebas Unitarias
+
+Se han implementado tests en **4 capas** para 5 microservicios:
+
+### Estructura de Tests
+
+Cada servicio contiene:
+```
+src/test/java/
+├── model/          # Tests del modelo (DoctorTest.java)
+├── service/        # Tests de lógica de negocio (DoctorServiceTest.java)
+├── repository/     # Tests de acceso a datos con H2 (DoctorRepositoryTest.java)
+└── controller/     # Tests de endpoints REST con MockMvc (DoctorControllerTest.java)
+```
+
+### Servicios con Tests Completos
+
+1. **medico-service** - 4 test files, 20+ tests
+2. **usuario-service** - 4 test files, 15+ tests
+3. **agenda-service** - 4 test files, 18+ tests
+4. **citas-service** - 4 test files, 18+ tests
+5. **pagos-service** - 4 test files, 25+ tests
+
+### Ejecutar Tests
 
 ```bash
-# Terminal 1: Iniciar Eureka Server
-cd eureka-server
-mvn spring-boot:run
+# Dentro de un servicio
+./mvnw test
 
-# Terminal 2: Iniciar API Gateway
-cd api-gateway
-mvn spring-boot:run
+# Ver reporte de tests
+./mvnw test report
 
-# Terminal 3-7: Iniciar los microservicios
-cd citas-service
-mvn spring-boot:run
-
-# (Repetir para otros servicios en terminales separadas)
-cd cancelaciones-service
-mvn spring-boot:run
-
-cd paciente-service
-mvn spring-boot:run
-
-cd medico-service
-mvn spring-boot:run
-
-cd usuario-service
-mvn spring-boot:run
+# Ejecutar tests de un servicio específico (Docker)
+docker exec medico-service mvn test
 ```
 
-### Opción 3: Compilación Manual
+### Cobertura de Tests
 
-```bash
-# Compilar cada servicio
-mvn clean package
+| Aspecto | Cobertura |
+|---------|-----------|
+| Modelo (CRUD) | ✅ Completa |
+| Servicio (Lógica) | ✅ Completa |
+| Repositorio (JPA) | ✅ Con H2 en memoria |
+| Controlador (REST) | ✅ Status 200, 201, 400, 404 |
 
-# Los JARs se generarán en target/
-# Ejecutar manualmente:
-java -jar citas-service/target/citas-service-1.0.0.jar
+## 🔐 Configuración de Swagger/OpenAPI
+
+### Dependencia
+
+```xml
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.6.0</version>
+</dependency>
 ```
 
-## 📊 Verificación de Servicios
+### Configuración en application.yml
 
-### Endpoint de Salud
-
-```bash
-# Comprobar que el API Gateway está operativo
-curl http://localhost:8080/actuator/health
-
-# Comprobar Eureka
-curl http://localhost:8761/eureka/status
-
-# Comprobar cada servicio
-curl http://localhost:8084/actuator/health
-curl http://localhost:8085/actuator/health
-curl http://localhost:8086/actuator/health
-curl http://localhost:8087/actuator/health
-curl http://localhost:8088/actuator/health
+```yaml
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    display-operation-id: false
+    operations-sorter: method
 ```
 
-## 📌 Comunicación entre Microservicios
-
-### Patrón de Comunicación: REST con Feign Client
-
-Los servicios se comunican entre sí usando **Spring Cloud OpenFeign**, registrando sus llamadas a través de Eureka.
-
-#### Ejemplo: Citas-Service llamando a Paciente-Service
+### Anotaciones en Controllers
 
 ```java
-@FeignClient(name = "paciente-service")
-public interface PacienteClient {
-    @GetMapping("/api/pacientes/{id}")
-    PacienteDTO obtenerPaciente(@PathVariable Long id);
-}
-```
-
-#### Ejemplo de Uso en Servicio
-
-```java
-@Service
-public class CitaService {
-    private final PacienteClient pacienteClient;
+@Tag(name = "Médicos", description = "Gestión de médicos")
+@RestController
+@RequestMapping("/api/doctors")
+public class DoctorController {
     
-    public CitaDTO crearCita(CitaCreateDTO request) {
-        // Validar paciente llamando a paciente-service
-        PacienteDTO paciente = pacienteClient.obtenerPaciente(
-            request.getPacienteId()
-        );
-        // ... lógica de negocio
-    }
+    @Operation(summary = "Registrar médico", description = "...")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Médico creado"),
+        @ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public DoctorResponseDTO create(@RequestBody DoctorRequestDTO dto) { ... }
 }
 ```
 
-## 🧪 Pruebas con Postman
+## 🗄️ Base de Datos
 
-### Colección de Endpoints
+### Configuración
 
-Se incluye una colección de Postman con ejemplos para:
-1. Crear cita
-2. Listar citas
-3. Actualizar cita
-4. Cancelar cita
-5. CRUD de pacientes
-6. CRUD de médicos
-7. CRUD de usuarios
+Cada microservicio tiene:
+- Base de datos independiente en PostgreSQL
+- Esquema autogenerado con Hibernate (ddl-auto: update)
+- Conexión vía jdbc:postgresql://db-{service}:{port}/{database}
 
-### Importar Colección
-
-```
-Archivo: postman-collection.json
-Importar en Postman → New → File
-```
-
-## 🔒 Configuración de Seguridad
-
-### Validación de Datos
-
-- ✅ Bean Validation en DTOs
-- ✅ Validación en controladores
-- ✅ Manejo de excepciones global
-
-### Manejo de Errores
-
-Cada servicio implementa:
-- `GlobalExceptionHandler` para manejo centralizado
-- Códigos HTTP semánticos
-- Respuestas de error estructuradas
-- Logs estructurados para trazabilidad
-
-## 📝 Estructura de Base de Datos
-
-### Esquema normalizado
-
-Cada servicio tiene su base de datos independiente:
-
-#### citasdb
-- Tabla: `citas` (id, paciente_id, medico_id, slot_agenda_id, motivo_consulta, estado)
-
-#### pacientesdb
-- Tabla: `pacientes` (id, nombre, apellido, email, telefono, rut)
-
-#### medicosdb
-- Tabla: `medicos` (id, nombre, apellido, especialidad, email, telefono, matricula)
-
-#### usuariosdb
-- Tabla: `usuarios` (id, nombre, email, username, password, rol, activo)
-
-#### cancelacionesdb
-- Tabla: `cancelaciones` (id, cita_id, motivo, estado, fecha_cancelacion)
-
-## 🛠️ Herramientas y Tecnologías
-
-| Componente | Versión |
-|-----------|---------|
-| Java | 21 LTS |
-| Spring Boot | 3.2.5 |
-| Spring Cloud | 2023.0.1 |
-| MySQL | 8.0 |
-| Docker | Latest |
-| Maven | 3.9+ |
-| JUnit 5 | Latest |
-| Mockito | Latest |
-| Swagger/OpenAPI | 2.1.0 |
-
-## 📋 Checklist de Requisitos
-
-- ✅ Mínimo 10 microservicios funcionales (11 implementados)
-- ✅ Swagger activo en 5 microservicios
-- ✅ Pruebas unitarias en 5 microservicios
-- ✅ Cobertura ≥ 80% (4 capas: Modelo, Servicio, Controlador, Repositorio)
-- ✅ API Gateway configurado
-- ✅ Eureka como servidor de descubrimiento
-- ✅ 5 microservicios registrados en Eureka
-- ✅ Comunicación entre microservicios vía Gateway
-- ✅ YAML correctamente configurado
-- ✅ CRUD completo con JPA + Hibernate
-- ✅ Commits descriptivos y distribuidos
-
-## 🔍 Monitoreo y Debugging
-
-### Ver logs en tiempo real
+### Acceso Directo (Opcional)
 
 ```bash
-# Con Docker Compose
-docker-compose logs -f <service-name>
+# Conectar a PostgreSQL de usuario-service (puerto 5432)
+psql -h localhost -U postgres -d usuariodb
 
-# Ejemplo
-docker-compose logs -f citas-service
+# Conectar a pagos-service (puerto 5437)
+psql -h localhost -p 5437 -U postgres -d pagosdb
 ```
 
-### Acceder a Eureka Dashboard
+## 📦 Tecnologías
 
-```
-http://localhost:8761/
-```
+- **Framework**: Spring Boot 3.2.12
+- **Lenguaje**: Java 21
+- **Build**: Maven 3.9.7
+- **BD Principal**: PostgreSQL 15
+- **Message Broker**: RabbitMQ 3
+- **API Docs**: SpringDoc OpenAPI 2.1.0 / 2.6.0
+- **Testing**: JUnit 5, Mockito, Spring Test
+- **ORM**: Hibernate 6.4.10
+- **Mapping**: MapStruct 1.5.5
+- **Utilidades**: Lombok 1.18.32
+- **Contenedorización**: Docker, Docker Compose
 
-Aquí puedes ver:
-- Servicios registrados
-- Instancias activas
-- Estado de cada instancia
-- Información de disponibilidad
+## 📝 Convenciones de Código
 
-## 📞 Soporte y Documentación
+### Nomenclatura
 
-- **API Docs**: Swagger UI en cada puerto
-- **Diagrama de arquitectura**: Ver `ARCHITECTURE.md`
-- **Guía de desarrollo**: Ver `DEVELOPMENT.md`
+- **Controllers**: `*Controller.java` (ej: DoctorController)
+- **Services**: `*Service.java` (ej: DoctorService)
+- **Repositories**: `*Repository.java` (ej: DoctorRepository)
+- **Models**: `*.java` (ej: Doctor.java)
+- **DTOs**: `*RequestDTO.java`, `*ResponseDTO.java`
+- **Mappers**: `*Mapper.java` (ej: DoctorMapper)
 
-## 📅 Información de Entrega
+### Anotaciones Obligatorias
 
-- **Fecha de Examen**: 09 de Julio de 2026
-- **Duración**: 15 minutos por equipo
-- **Formato**: Presentación grupal + Defensa individual
-- **Ponderación Encargo**: 40%
-- **Ponderación Defensa**: 60%
+- `@RestController` en controllers
+- `@Service` en servicios
+- `@Repository` en repositorios
+- `@Entity` en modelos JPA
+- `@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@Builder` (Lombok)
 
-## 📜 Licencia
+## 🔗 Comunicación Entre Microservicios
 
-Proyecto académico - Sistema de Gestión de Clínicas 2026
+- **Síncrona**: REST con OpenFeign (`@FeignClient`)
+- **Asíncrona**: RabbitMQ con Spring AMQP
+
+## 📊 Próximos Pasos (Semana 16)
+
+- [ ] API Gateway (Spring Cloud Gateway)
+- [ ] Autenticación centralizada (OAuth2/JWT)
+- [ ] Circuit Breaker (Resilience4j)
+- [ ] Trazabilidad distribuida (Spring Cloud Sleuth)
+- [ ] Métricas (Micrometer)
+
+## 🤝 Contribución
+
+Para agregar nuevas funcionalidades:
+
+1. Crear rama: `git checkout -b feature/nombre-feature`
+2. Hacer commits: `git commit -am 'Agrega feature'`
+3. Push: `git push origin feature/nombre-feature`
+4. Pull Request
+
+## 📄 Licencia
+
+Apache 2.0
+
+## 👥 Soporte
+
+Para consultas o problemas:
+- Revisar logs: `docker compose logs -f [service-name]`
+- Verificar estado: `docker compose ps`
+- Reiniciar servicio: `docker compose restart [service-name]`
+
+---
+
+**Última actualización**: Junio 2026  
+**Semana 15** - Tests (4 capas) + Swagger/OpenAPI completados ✅

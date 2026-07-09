@@ -31,6 +31,18 @@ spring:
           uri: lb://PAGOS-SERVICE
           predicates:
             - Path=/api/payments/**
+        - id: pagos-doc-route
+          uri: lb://PAGOS-SERVICE
+          predicates:
+            - Path=/doc/**
+        - id: pagos-apidocs-root-route
+          uri: lb://PAGOS-SERVICE
+          predicates:
+            - Path=/v3/api-docs
+        - id: pagos-apidocs-route
+          uri: lb://PAGOS-SERVICE
+          predicates:
+            - Path=/v3/api-docs/**
         - id: facturacion-route
           uri: lb://FACTURACION-SERVICE
           predicates:
